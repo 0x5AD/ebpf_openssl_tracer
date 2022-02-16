@@ -46,23 +46,39 @@ int probe_SSL_connect_enter(struct pt_regs *ctx, void *ssl) {
     u32 pid = pid_tgid >> 32;
     u32 tid = pid_tgid;
     struct sockaddr **addrpp;
-    struct sockaddr_in *addrp;
     
     addrpp = currsock.lookup(&pid);
     if (addrpp == NULL)
         return 0;
-    
-    addrp = (struct sockaddr_in *) *addrpp;
-    if (addrp == NULL)
-        return 0;
 
-    struct ipv4_data_t data = {.pid = pid};
-    data.uid = bpf_get_current_uid_gid();
-    data.daddr = addrp->sin_addr.s_addr;
-    data.dport = addrp->sin_port;
-    bpf_get_current_comm(&data.task, sizeof(data.task));       
-    ipv4_events.perf_submit(ctx, &data, sizeof(data));
-    currsock.delete(&pid);
+    if ((*addrpp)->sa_family == AF_INET) {
+        struct sockaddr_in *addrp_v4;
+        addrp_v4 = (struct sockaddr_in *) *addrpp;
+        if (addrp_v4 == NULL)
+            return 0;
+
+        struct ipv4_data_t data = {.pid = pid};
+        data.uid = bpf_get_current_uid_gid();
+        data.daddr = addrp_v4->sin_addr.s_addr;
+        data.dport = addrp_v4->sin_port;
+        bpf_get_current_comm(&data.task, sizeof(data.task));       
+        ipv4_events.perf_submit(ctx, &data, sizeof(data));
+        currsock.delete(&pid);
+    }
+    else if ((*addrpp)->sa_family == AF_INET6) {
+        struct sockaddr_in6 *addrp_v6;
+        addrp_v6 = (struct sockaddr_in6 *) *addrpp;
+        if (addrp_v6 == NULL)
+            return 0;
+
+        struct ipv6_data_t data = {.pid = pid};
+        data.uid = bpf_get_current_uid_gid();
+        bpf_probe_read_kernel(&data.daddr, sizeof(data.daddr), addrp_v6->sin6_addr.s6_addr);
+        data.dport = addrp_v6->sin6_port;
+        bpf_get_current_comm(&data.task, sizeof(data.task));       
+        ipv6_events.perf_submit(ctx, &data, sizeof(data));
+        currsock.delete(&pid);
+    }
     
     return 0;
 }
