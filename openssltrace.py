@@ -42,7 +42,6 @@ BPF_HASH(ipv6_hash, u32, struct ipv6_data_t);
 int trace_connect_entry(struct pt_regs *ctx, struct sock *sk)
 {
     u32 tid = bpf_get_current_pid_tgid();
-    u32 uid = bpf_get_current_uid_gid();
     // stash the sock ptr for lookup on return
     currsock.update(&tid, &sk);
     return 0;
