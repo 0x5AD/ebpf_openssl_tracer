@@ -4,7 +4,7 @@
 To use this tool, you will need to install a recent version of python3 and follow the installation steps of the [bcc toolkit](https://github.com/iovisor/bcc/).
 
 ## Usage:
-Once you have downloaded the openssltracer.py script, you just need to run it with a Python 3 interpreter as a superuser to use the tool. 
+Once you have downloaded the openssltracer.py script, you just need to run it with a Python 3 interpreter as superuser to use the tool. 
 ```
 sudo python3 openssltrace.py
 OR
