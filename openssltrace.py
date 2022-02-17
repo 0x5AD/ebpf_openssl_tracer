@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 from bcc import BPF
 from bcc.utils import printb
-from socket import inet_ntop, AF_INET, AF_INET6, gethostbyaddr
+from socket import inet_ntop, AF_INET, AF_INET6
 from struct import pack
 
 prog = """
